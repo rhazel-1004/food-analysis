@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import type { FormEvent } from 'react'
 import type { Message } from '@/lib/types'
 
 interface Props {
@@ -18,7 +17,7 @@ export default function ChatPanel({ messages, onSend, isStreaming }: Props) {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: { preventDefault(): void }) => {
     e.preventDefault()
     const text = input.trim()
     if (!text || isStreaming) return
@@ -48,7 +47,13 @@ export default function ChatPanel({ messages, onSend, isStreaming }: Props) {
                     : 'bg-white border border-zinc-200 text-zinc-800 rounded-bl-none shadow-sm'
                   }`}
               >
-                {m.content}
+                {m.content || (isStreaming && i === messages.length - 1)
+                  ? m.content || <span className="inline-flex gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:0ms]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:150ms]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:300ms]" />
+                    </span>
+                  : m.content}
               </div>
             </div>
           ))
@@ -63,7 +68,7 @@ export default function ChatPanel({ messages, onSend, isStreaming }: Props) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask about this food..."
-          className="flex-1 rounded-full border border-zinc-300 px-4 py-2 text-sm outline-none focus:border-zinc-500 bg-zinc-50"
+          className="flex-1 rounded-full border border-zinc-300 px-4 py-2 text-sm outline-none focus:border-zinc-500 bg-white text-zinc-900 placeholder:text-zinc-400"
         />
         <button
           type="submit"

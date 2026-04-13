@@ -13,6 +13,42 @@ export default function FoodApp() {
   const [imageObjectUrl, setImageObjectUrl] = useState<string | null>(null)
   const [nutrition, setNutrition] = useState<NutritionData | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
+  const [isStreaming, setIsStreaming] = useState(false)
+
+  const handleSend = useCallback(async (content: string) => {
+    const userMsg: Message = { role: 'user', content }
+    const historyForRequest = [...messages, userMsg]
+
+    setMessages(prev => [...prev, userMsg, { role: 'assistant', content: '' }])
+    setIsStreaming(true)
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: historyForRequest, nutrition }),
+      })
+      if (!res.ok || !res.body) throw new Error(await res.text())
+
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        const chunk = decoder.decode(value, { stream: true })
+        setMessages(prev => {
+          const copy = [...prev]
+          copy[copy.length - 1] = { role: 'assistant', content: copy[copy.length - 1].content + chunk }
+          return copy
+        })
+      }
+    } catch (err) {
+      console.error('[chat]', err)
+      setMessages(prev => prev.slice(0, -1)) // drop empty assistant bubble on error
+    } finally {
+      setIsStreaming(false)
+    }
+  }, [messages, nutrition])
 
   const handleImageSelect = useCallback(async (file: File) => {
     if (imageObjectUrl) URL.revokeObjectURL(imageObjectUrl)
@@ -95,7 +131,7 @@ export default function FoodApp() {
 
       {/* Right panel — chat */}
       <div className="flex flex-col flex-1 overflow-hidden min-h-[60vh] lg:min-h-0">
-        <ChatPanel messages={messages} onSend={() => {}} isStreaming={false} />
+        <ChatPanel messages={messages} onSend={handleSend} isStreaming={isStreaming} />
       </div>
     </div>
   )
