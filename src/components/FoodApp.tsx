@@ -14,6 +14,7 @@ export default function FoodApp() {
   const [nutrition, setNutrition] = useState<NutritionData | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
+  const [analyzeError, setAnalyzeError] = useState<string | null>(null)
 
   const handleSend = useCallback(async (content: string) => {
     const userMsg: Message = { role: 'user', content }
@@ -55,6 +56,7 @@ export default function FoodApp() {
     setImageObjectUrl(URL.createObjectURL(file))
     setNutrition(null)
     setMessages([])
+    setAnalyzeError(null)
     setPhase('analyzing')
 
     try {
@@ -71,6 +73,7 @@ export default function FoodApp() {
       setPhase('ready')
     } catch (err) {
       console.error('[analyze]', err)
+      setAnalyzeError('Could not analyze image. Please try a clearer food photo.')
       setPhase('idle')
     }
   }, [imageObjectUrl])
@@ -92,6 +95,9 @@ export default function FoodApp() {
             <p className="text-zinc-500 text-sm mt-1">Upload a photo to get a nutrition estimate</p>
           </div>
           <ImageUploader onImageSelect={handleImageSelect} />
+          {analyzeError && (
+            <p className="text-red-500 text-xs text-center">{analyzeError}</p>
+          )}
         </div>
       </div>
     )
@@ -131,7 +137,16 @@ export default function FoodApp() {
 
       {/* Right panel — chat */}
       <div className="flex flex-col flex-1 overflow-hidden min-h-[60vh] lg:min-h-0">
-        <ChatPanel messages={messages} onSend={handleSend} isStreaming={isStreaming} />
+        <ChatPanel
+          messages={messages}
+          suggestions={nutrition ? [
+            `Is ${nutrition.foodName} a healthy choice?`,
+            `How much protein does it have?`,
+            `Suggest a lighter alternative`,
+          ] : []}
+          onSend={handleSend}
+          isStreaming={isStreaming}
+        />
       </div>
     </div>
   )

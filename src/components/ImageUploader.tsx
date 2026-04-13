@@ -9,10 +9,17 @@ interface Props {
 
 export default function ImageUploader({ onImageSelect }: Props) {
   const [isDragging, setIsDragging] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleFile = (file: File) => {
-    if (file.type.startsWith('image/')) onImageSelect(file)
+    if (file.type.startsWith('image/')) {
+      setError(null)
+      onImageSelect(file)
+    } else {
+      setError('Please upload an image file (JPG, PNG, WEBP)')
+      setTimeout(() => setError(null), 3000)
+    }
   }
 
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
@@ -28,6 +35,7 @@ export default function ImageUploader({ onImageSelect }: Props) {
   }
 
   return (
+    <>
     <div
       role="button"
       tabIndex={0}
@@ -57,5 +65,7 @@ export default function ImageUploader({ onImageSelect }: Props) {
         onChange={handleChange}
       />
     </div>
+    {error && <p className="text-red-500 text-xs text-center mt-2">{error}</p>}
+    </>
   )
 }
