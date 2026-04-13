@@ -1,0 +1,9 @@
+-⁠ ⁠Food webapp
+Build a webapp that chats with you about the food you're eating. After uploading a picture, it will:
+give a nutritional label (https://www.fda.gov/food/nutrition-facts-label/how-understand-and-use-nutrition-facts-labell) for the food
+have a back-and-forth conversation about the food
+Make sure to make the conversation feel as smooth and natural as possible.
+when developing make git commits of small sizes
+
+
+https://github.com/rhazel-1004/food-analysis.git
